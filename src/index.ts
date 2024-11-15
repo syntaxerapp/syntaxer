@@ -30,21 +30,27 @@ program
   .action(async (options) => {
     if (options.link) {
       const link = options.link
-      
-      const response = await axios.get(link);
+
+      const response = await axios.get(link)
       const html = response.data
 
       const $ = cheerio.load(html)
       var title = $('title').text()
-      const inc = Math.max(title.indexOf('|'), title.indexOf('/'), title.indexOf('\\'))
+      const inc = Math.max(
+        title.indexOf('|'),
+        title.indexOf('/'),
+        title.indexOf('\\')
+      )
       if (inc > 0) {
         title = title.slice(0, inc)
       }
 
       const article: any[] = []
-      $('h1, h2, h3, p, pre, table, ul, il, a, img').each((_index: number, element: any) => {
-        article.push($(element))
-      })
+      $('h1, h2, h3, p, pre, table, ul, il, a, img').each(
+        (_index: number, element: any) => {
+          article.push($(element))
+        }
+      )
       $('header').each((_index: number, element: any) => {
         // console.log($(element.childNodes[0].name))
         console.log($(element))
@@ -83,7 +89,7 @@ program
         let el = {
           type: name,
           content: text,
-          attributes: {}
+          attributes: {},
         }
         let attributes: Record<string, any> = {}
 
