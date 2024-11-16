@@ -1,15 +1,9 @@
-import { Hookable } from 'hookable'
+import * as ShelfDependency from 'shelf-dependency'
+import { SamplePlugin } from './plugins/sample-plugin'
 
-export default class SyntaxerPlugin extends Hookable {
-  constructor() {
-    // Call to parent to initialize
-    super()
-    // Initialize Hookable with custom logger
-    // super(consola)
-  }
+const container = new ShelfDependency.Container()
 
-  async someFunction() {
-    // Call and wait for `hook1` hooks (if any) sequential
-    await this.callHook('hook1')
-  }
-}
+container.register('sample', SamplePlugin)
+container.register('logger', console)
+
+export { container }

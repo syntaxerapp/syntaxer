@@ -5,6 +5,7 @@ import * as cheerio from 'cheerio'
 import htmlCreator from 'html-creator'
 import slugify from 'slugify'
 import axios from 'axios'
+import { container } from './plugin-manager'
 
 const generateHTML = (title: string, article: any[]) => {
   const data = [
@@ -111,6 +112,8 @@ program
       })
       generateHTML(title, data)
     } else {
+      const test = container.resolve('sample')
+      test.returnText()
       console.log('Type syntaxer -l <link>')
     }
   })

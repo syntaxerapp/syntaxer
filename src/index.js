@@ -32,6 +32,7 @@ const cheerio = __importStar(require("cheerio"));
 const html_creator_1 = __importDefault(require("html-creator"));
 const slugify_1 = __importDefault(require("slugify"));
 const axios_1 = __importDefault(require("axios"));
+const plugin_manager_1 = require("./plugin-manager");
 const generateHTML = (title, article) => {
     const data = [
         { type: 'head', content: [{ type: 'title', content: title }] },
@@ -101,7 +102,7 @@ commander_1.program
             let el = {
                 type: name,
                 content: text,
-                attributes: {}
+                attributes: {},
             };
             let attributes = {};
             // if ((name == 'p') | name.includes('h') | (name == 'a')) {
@@ -120,6 +121,8 @@ commander_1.program
         generateHTML(title, data);
     }
     else {
+        const test = plugin_manager_1.container.resolve('sample');
+        test.returnText();
         console.log('Type syntaxer -l <link>');
     }
 });
