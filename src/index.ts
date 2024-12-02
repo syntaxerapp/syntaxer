@@ -5,7 +5,15 @@ import * as cheerio from 'cheerio'
 import htmlCreator from 'html-creator'
 import slugify from 'slugify'
 import axios from 'axios'
-import { container } from './plugin-manager'
+import PluginManager, { SyntaxerPlugin } from './plugin-manager'
+
+const manager = new PluginManager(__dirname + '/plugins/')
+
+manager.registerPlugin({
+  name: 'sample-plugin',
+  package: './samplePlugin',
+  isRelative: true
+})
 
 const generateHTML = (title: string, article: any[]) => {
   const data = [
@@ -112,8 +120,8 @@ program
       })
       generateHTML(title, data)
     } else {
-      const test = container.resolve('sample')
-      test.returnText()
+      const plugin = manager.loadPlugin<SyntaxerPlugin>('sample-plugin')
+      console.log(plugin.convertCommand('echo'))
       console.log('Type syntaxer -l <link>')
     }
   })
@@ -121,3 +129,7 @@ program
 program.command('plugins', 'manage your plugins').executableDir('commands')
 
 program.parse(process.argv)
+
+
+// TODO сделать импорты типа @text-plugins/types, а не ../../plugin-manager
+// https://stateful.com/blog/build-a-plugin-system-with-node

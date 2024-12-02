@@ -32,7 +32,13 @@ const cheerio = __importStar(require("cheerio"));
 const html_creator_1 = __importDefault(require("html-creator"));
 const slugify_1 = __importDefault(require("slugify"));
 const axios_1 = __importDefault(require("axios"));
-const plugin_manager_1 = require("./plugin-manager");
+const plugin_manager_1 = __importDefault(require("./plugin-manager"));
+const manager = new plugin_manager_1.default(__dirname + '/plugins/');
+manager.registerPlugin({
+    name: 'sample-plugin',
+    package: './samplePlugin',
+    isRelative: true
+});
 const generateHTML = (title, article) => {
     const data = [
         { type: 'head', content: [{ type: 'title', content: title }] },
@@ -121,10 +127,11 @@ commander_1.program
         generateHTML(title, data);
     }
     else {
-        const test = plugin_manager_1.container.resolve('sample');
-        test.returnText();
+        const plugin = manager.loadPlugin('sample-plugin');
+        console.log(plugin.convertCommand('echo'));
         console.log('Type syntaxer -l <link>');
     }
 });
 commander_1.program.command('plugins', 'manage your plugins').executableDir('commands');
 commander_1.program.parse(process.argv);
+//TODO сделать импорты типа @text-plugins/types, а не ../../plugin-manager
