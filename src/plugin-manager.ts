@@ -9,7 +9,7 @@ interface IPlugin {
   options?: any
 }
 
-export default class PluginManager {
+export class PluginManager {
   private pluginList: Map<string, IPlugin>
   private pluginFolder: string
 

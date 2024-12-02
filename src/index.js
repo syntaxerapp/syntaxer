@@ -27,17 +27,19 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.SyntaxerPlugin = void 0;
 const commander_1 = require("commander");
 const cheerio = __importStar(require("cheerio"));
 const html_creator_1 = __importDefault(require("html-creator"));
 const slugify_1 = __importDefault(require("slugify"));
 const axios_1 = __importDefault(require("axios"));
-const plugin_manager_1 = __importDefault(require("./plugin-manager"));
-const manager = new plugin_manager_1.default(__dirname + '/plugins/');
+const plugin_manager_1 = require("./plugin-manager");
+Object.defineProperty(exports, "SyntaxerPlugin", { enumerable: true, get: function () { return plugin_manager_1.SyntaxerPlugin; } });
+const manager = new plugin_manager_1.PluginManager(__dirname + '/plugins/');
 manager.registerPlugin({
     name: 'sample-plugin',
     package: './samplePlugin',
-    isRelative: true
+    isRelative: true,
 });
 const generateHTML = (title, article) => {
     const data = [
@@ -134,4 +136,3 @@ commander_1.program
 });
 commander_1.program.command('plugins', 'manage your plugins').executableDir('commands');
 commander_1.program.parse(process.argv);
-//TODO сделать импорты типа @text-plugins/types, а не ../../plugin-manager

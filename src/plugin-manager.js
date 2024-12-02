@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SyntaxerPlugin = void 0;
+exports.SyntaxerPlugin = exports.PluginManager = void 0;
 const require_module_1 = __importDefault(require("require-module"));
 const path_1 = __importDefault(require("path"));
 class PluginManager {
@@ -48,7 +48,7 @@ class PluginManager {
         return this.pluginList;
     }
 }
-exports.default = PluginManager;
+exports.PluginManager = PluginManager;
 class SyntaxerPlugin {
     options;
 }
