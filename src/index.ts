@@ -6,12 +6,14 @@ import htmlCreator from 'html-creator'
 import slugify from 'slugify'
 import axios from 'axios'
 import { PluginManager, SyntaxerPlugin } from './plugin-manager'
+import Database from './database'
 
-const manager = new PluginManager(__dirname + '/plugins/')
+const manager = new PluginManager(__dirname)
+const db = new Database()
 
 manager.registerPlugin({
   name: 'sample-plugin',
-  package: './samplePlugin',
+  package: 'samplePlugin',
   isRelative: true,
 })
 
@@ -123,6 +125,8 @@ program
       const plugin = manager.loadPlugin<SyntaxerPlugin>('sample-plugin')
       console.log(plugin.convertCommand('echo'))
       console.log('Type syntaxer -l <link>')
+      await db.registerPlugins(manager)
+      console.log(await db.getPluginList())
     }
   })
 

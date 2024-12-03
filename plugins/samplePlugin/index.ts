@@ -1,4 +1,4 @@
-import { SyntaxerPlugin } from '../../index'
+import { SyntaxerPlugin } from '../../src/index'
 // import { SyntaxerPlugin } from 'syntaxer'
 
 class SamplePlugin extends SyntaxerPlugin {

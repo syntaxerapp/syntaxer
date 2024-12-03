@@ -8,10 +8,10 @@ const require_module_1 = __importDefault(require("require-module"));
 const path_1 = __importDefault(require("path"));
 class PluginManager {
     pluginList;
-    pluginFolder;
-    constructor(pluginFolder) {
+    srcPath;
+    constructor(srcPath) {
         this.pluginList = new Map();
-        this.pluginFolder = pluginFolder;
+        this.srcPath = srcPath;
     }
     pluginExists(name) {
         return this.pluginList.has(name);
@@ -28,7 +28,7 @@ class PluginManager {
         }
         try {
             const packageContents = plugin.isRelative
-                ? (0, require_module_1.default)(path_1.default.join(this.pluginFolder, plugin.package))
+                ? (0, require_module_1.default)(path_1.default.join(this.srcPath, '..', 'plugins', plugin.package))
                 : (0, require_module_1.default)(plugin.package);
             this.addPlugin(plugin, packageContents);
         }

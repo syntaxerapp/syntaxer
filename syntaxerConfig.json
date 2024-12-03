@@ -1,0 +1,20 @@
+{
+    "plugins": [
+        {
+            "obj": {
+                "name": "sample-plugin",
+                "package": "samplePlugin",
+                "isRelative": true,
+                "instance": {}
+            }
+        },
+        {
+            "obj": {
+                "name": "sample-plugin",
+                "package": "samplePlugin",
+                "isRelative": true,
+                "instance": {}
+            }
+        }
+    ]
+}

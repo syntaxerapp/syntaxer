@@ -1,7 +1,7 @@
 import requireModule from 'require-module'
 import path from 'path'
 
-interface IPlugin {
+export interface IPlugin {
   name: string
   package: string
   isRelative?: boolean
@@ -11,11 +11,11 @@ interface IPlugin {
 
 export class PluginManager {
   private pluginList: Map<string, IPlugin>
-  private pluginFolder: string
+  private srcPath: string
 
-  constructor(pluginFolder: string) {
+  constructor(srcPath: string) {
     this.pluginList = new Map()
-    this.pluginFolder = pluginFolder
+    this.srcPath = srcPath
   }
 
   private pluginExists(name: string): boolean {
@@ -37,7 +37,7 @@ export class PluginManager {
 
     try {
       const packageContents = plugin.isRelative
-        ? requireModule(path.join(this.pluginFolder, plugin.package))
+        ? requireModule(path.join(this.srcPath, '..', 'plugins', plugin.package))
         : requireModule(plugin.package)
       this.addPlugin(plugin, packageContents)
     } catch (error) {

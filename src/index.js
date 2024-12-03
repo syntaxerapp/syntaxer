@@ -35,10 +35,12 @@ const slugify_1 = __importDefault(require("slugify"));
 const axios_1 = __importDefault(require("axios"));
 const plugin_manager_1 = require("./plugin-manager");
 Object.defineProperty(exports, "SyntaxerPlugin", { enumerable: true, get: function () { return plugin_manager_1.SyntaxerPlugin; } });
-const manager = new plugin_manager_1.PluginManager(__dirname + '/plugins/');
+const database_1 = __importDefault(require("./database"));
+const manager = new plugin_manager_1.PluginManager(__dirname);
+const db = new database_1.default();
 manager.registerPlugin({
     name: 'sample-plugin',
-    package: './samplePlugin',
+    package: 'samplePlugin',
     isRelative: true,
 });
 const generateHTML = (title, article) => {
@@ -132,6 +134,8 @@ commander_1.program
         const plugin = manager.loadPlugin('sample-plugin');
         console.log(plugin.convertCommand('echo'));
         console.log('Type syntaxer -l <link>');
+        await db.registerPlugins(manager);
+        console.log(await db.getPluginList());
     }
 });
 commander_1.program.command('plugins', 'manage your plugins').executableDir('commands');
