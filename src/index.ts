@@ -11,10 +11,17 @@ import Database from './database'
 const manager = new PluginManager(__dirname)
 const db = new Database()
 
+// manager.registerPlugin({
+//   name: 'sample-plugin',
+//   package: 'sample-plugin',
+//   isRelative: true,
+// })
+
 manager.registerPlugin({
-  name: 'sample-plugin',
-  package: 'samplePlugin',
+  name: 'node-plugin',
+  package: 'node-plugin',
   isRelative: true,
+  options: { userChoice: 'yarn' }
 })
 
 const generateHTML = (title: string, article: any[]) => {
@@ -122,11 +129,12 @@ program
       })
       generateHTML(title, data)
     } else {
-      const plugin = manager.loadPlugin<SyntaxerPlugin>('sample-plugin')
-      console.log(plugin.convertCommand('echo'))
+      // await db.registerPlugins(manager)
+      // console.log(await db.getPluginList())
+      // const plugin = manager.loadPlugin<SyntaxerPlugin>('sample-plugin')
+      const plugin = manager.loadPlugin<SyntaxerPlugin>('node-plugin')
+      console.log(plugin.convertCommand('npm install commander'))
       console.log('Type syntaxer -l <link>')
-      await db.registerPlugins(manager)
-      console.log(await db.getPluginList())
     }
   })
 

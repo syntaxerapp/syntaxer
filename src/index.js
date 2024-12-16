@@ -38,10 +38,16 @@ Object.defineProperty(exports, "SyntaxerPlugin", { enumerable: true, get: functi
 const database_1 = __importDefault(require("./database"));
 const manager = new plugin_manager_1.PluginManager(__dirname);
 const db = new database_1.default();
+// manager.registerPlugin({
+//   name: 'sample-plugin',
+//   package: 'sample-plugin',
+//   isRelative: true,
+// })
 manager.registerPlugin({
-    name: 'sample-plugin',
-    package: 'samplePlugin',
+    name: 'node-plugin',
+    package: 'node-plugin',
     isRelative: true,
+    options: { userChoice: 'yarn' }
 });
 const generateHTML = (title, article) => {
     const data = [
@@ -131,11 +137,12 @@ commander_1.program
         generateHTML(title, data);
     }
     else {
-        const plugin = manager.loadPlugin('sample-plugin');
-        console.log(plugin.convertCommand('echo'));
+        // await db.registerPlugins(manager)
+        // console.log(await db.getPluginList())
+        // const plugin = manager.loadPlugin<SyntaxerPlugin>('sample-plugin')
+        const plugin = manager.loadPlugin('node-plugin');
+        console.log(plugin.convertCommand('npm install commander'));
         console.log('Type syntaxer -l <link>');
-        await db.registerPlugins(manager);
-        console.log(await db.getPluginList());
     }
 });
 commander_1.program.command('plugins', 'manage your plugins').executableDir('commands');
