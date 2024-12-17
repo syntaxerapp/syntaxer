@@ -16,7 +16,7 @@ class Database {
         }
         // const result = await this.db.getObject<IPlugin>('/plugins')
     }
-    async registerPlugins(manager) {
+    async addPluginsFromManager(manager) {
         manager.listPluginList().forEach(async (plugin) => {
             await this.addPlugin(plugin);
         });
