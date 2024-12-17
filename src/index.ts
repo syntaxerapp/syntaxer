@@ -142,4 +142,4 @@ program.command('plugins', 'manage your plugins').executableDir('commands')
 
 program.parse(process.argv)
 
-export { SyntaxerPlugin }
+export { SyntaxerPlugin, manager, db }

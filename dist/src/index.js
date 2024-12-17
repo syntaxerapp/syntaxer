@@ -27,7 +27,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SyntaxerPlugin = void 0;
+exports.db = exports.manager = exports.SyntaxerPlugin = void 0;
 const commander_1 = require("commander");
 const cheerio = __importStar(require("cheerio"));
 const html_creator_1 = __importDefault(require("html-creator"));
@@ -37,7 +37,9 @@ const plugin_manager_1 = require("./plugin-manager");
 Object.defineProperty(exports, "SyntaxerPlugin", { enumerable: true, get: function () { return plugin_manager_1.SyntaxerPlugin; } });
 const database_1 = __importDefault(require("./database"));
 const manager = new plugin_manager_1.PluginManager(__dirname);
+exports.manager = manager;
 const db = new database_1.default();
+exports.db = db;
 // manager.registerPlugin({
 //   name: 'sample-plugin',
 //   package: 'sample-plugin',
