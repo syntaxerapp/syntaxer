@@ -137,8 +137,8 @@ commander_1.program
         generateHTML(title, data);
     }
     else {
-        // await db.registerPlugins(manager)
-        // console.log(await db.getPluginList())
+        await db.registerPlugins(manager);
+        console.log(await db.getPluginList());
         // const plugin = manager.loadPlugin<SyntaxerPlugin>('sample-plugin')
         const plugin = manager.loadPlugin('node-plugin');
         console.log(plugin.convertCommand('npm install commander'));
