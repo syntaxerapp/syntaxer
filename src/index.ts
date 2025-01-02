@@ -46,6 +46,10 @@ program
   .description('Syntaxer CLI')
   .option('-l, --link <type>', 'link to convert')
   .action(async (options) => {
+    const plugins = await db.getPluginList()
+    plugins.forEach((plugin: IPlugin) => {
+      manager.registerPlugin(plugin)
+    })
     if (options.link) {
       const link = options.link
 
@@ -128,17 +132,6 @@ program
         data.push(el)
       })
       generateHTML(title, data)
-    } else {
-      // await db.addPluginsFromManager(manager)
-      // console.log(await db.getPluginList())
-      // const plugin = manager.loadPlugin<SyntaxerPlugin>('sample-plugin')
-      const plugins = await db.getPluginList()
-      plugins.forEach((plugin: IPlugin) => {
-        manager.registerPlugin(plugin)
-      })
-      // const plugin = manager.loadPlugin<SyntaxerPlugin>('node-plugin')
-      // console.log(plugin.convertCommand('npm install commander'))
-      // console.log('Type syntaxer -l <link>')
     }
   })
 

@@ -20,7 +20,6 @@ class Database {
         if (toAdd) {
             await this.db.push('/plugins/enabled[]', plugin, true);
         }
-        // const result = await this.db.getObject<IPlugin>('/plugins')
     }
     async enablePlugin(plugin, index) {
         await this.db.delete(`/plugins/disabled[${index}]`);
@@ -29,11 +28,6 @@ class Database {
     async disablePlugin(plugin, index) {
         await this.db.delete(`/plugins/enabled[${index}]`);
         await this.db.push('/plugins/disabled[]', plugin, true);
-    }
-    async addPluginsFromManager(manager) {
-        manager.listPluginList().forEach(async (plugin) => {
-            await this.addPlugin(plugin);
-        });
     }
 }
 exports.default = Database;

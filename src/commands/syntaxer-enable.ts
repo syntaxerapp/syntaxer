@@ -1,8 +1,7 @@
 #! /usr/bin/env node
 
 import { program } from 'commander'
-import { manager, db } from '..'
-import { IPlugin } from '../plugin-manager'
+import { db } from '..'
 
 program.argument('<plugin>').action(async (plugin) => {
   if (plugin) {

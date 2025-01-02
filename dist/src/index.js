@@ -71,6 +71,10 @@ commander_1.program
     .description('Syntaxer CLI')
     .option('-l, --link <type>', 'link to convert')
     .action(async (options) => {
+    const plugins = await db.getPluginList();
+    plugins.forEach((plugin) => {
+        manager.registerPlugin(plugin);
+    });
     if (options.link) {
         const link = options.link;
         const response = await axios_1.default.get(link);
@@ -137,18 +141,6 @@ commander_1.program
             data.push(el);
         });
         generateHTML(title, data);
-    }
-    else {
-        // await db.addPluginsFromManager(manager)
-        // console.log(await db.getPluginList())
-        // const plugin = manager.loadPlugin<SyntaxerPlugin>('sample-plugin')
-        const plugins = await db.getPluginList();
-        plugins.forEach((plugin) => {
-            manager.registerPlugin(plugin);
-        });
-        // const plugin = manager.loadPlugin<SyntaxerPlugin>('node-plugin')
-        // console.log(plugin.convertCommand('npm install commander'))
-        // console.log('Type syntaxer -l <link>')
     }
 });
 commander_1.program.command('plugins', 'list of your plugins').executableDir('commands');

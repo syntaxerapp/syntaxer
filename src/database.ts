@@ -23,7 +23,6 @@ class Database {
         if (toAdd) {
             await this.db.push('/plugins/enabled[]', plugin, true)
         }
-        // const result = await this.db.getObject<IPlugin>('/plugins')
     }
 
     async enablePlugin(plugin: IPlugin, index: number) {
@@ -35,13 +34,6 @@ class Database {
         await this.db.delete(`/plugins/enabled[${index}]`)
         await this.db.push('/plugins/disabled[]', plugin, true)
     }
-
-    async addPluginsFromManager(manager: PluginManager) {
-        manager.listPluginList().forEach(async (plugin) => {
-            await this.addPlugin(plugin)
-        })
-    }
-
 }
 
 export default Database
