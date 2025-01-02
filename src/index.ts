@@ -5,7 +5,7 @@ import * as cheerio from 'cheerio'
 import htmlCreator from 'html-creator'
 import slugify from 'slugify'
 import axios from 'axios'
-import { PluginManager, SyntaxerPlugin } from './plugin-manager'
+import { IPlugin, PluginManager, SyntaxerPlugin } from './plugin-manager'
 import Database from './database'
 
 const manager = new PluginManager(__dirname)
@@ -17,12 +17,12 @@ const db = new Database()
 //   isRelative: true,
 // })
 
-manager.registerPlugin({
-  name: 'node-plugin',
-  package: 'node-plugin',
-  isRelative: true,
-  options: { userChoice: 'yarn' }
-})
+// manager.registerPlugin({
+//   name: 'node-plugin',
+//   package: 'node-plugin',
+//   isRelative: true,
+//   options: { userChoice: 'pnpm' }
+// })
 
 const generateHTML = (title: string, article: any[]) => {
   const data = [
@@ -44,7 +44,7 @@ const generateHTML = (title: string, article: any[]) => {
 program
   .version('0.1.0')
   .description('Syntaxer CLI')
-  .option('-l, --link <type>', 'give link to convert')
+  .option('-l, --link <type>', 'link to convert')
   .action(async (options) => {
     if (options.link) {
       const link = options.link
@@ -129,16 +129,22 @@ program
       })
       generateHTML(title, data)
     } else {
-      await db.addPluginsFromManager(manager)
-      console.log(await db.getPluginList())
+      // await db.addPluginsFromManager(manager)
+      // console.log(await db.getPluginList())
       // const plugin = manager.loadPlugin<SyntaxerPlugin>('sample-plugin')
-      const plugin = manager.loadPlugin<SyntaxerPlugin>('node-plugin')
-      console.log(plugin.convertCommand('npm install commander'))
-      console.log('Type syntaxer -l <link>')
+      const plugins = await db.getPluginList()
+      plugins.forEach((plugin: IPlugin) => {
+        manager.registerPlugin(plugin)
+      })
+      // const plugin = manager.loadPlugin<SyntaxerPlugin>('node-plugin')
+      // console.log(plugin.convertCommand('npm install commander'))
+      // console.log('Type syntaxer -l <link>')
     }
   })
 
-program.command('plugins', 'manage your plugins').executableDir('commands')
+program.command('plugins', 'list of your plugins').executableDir('commands')
+program.command('enable', 'enable plugin').executableDir('commands')
+program.command('disable', 'disable plugin').executableDir('commands')
 
 program.parse(process.argv)
 

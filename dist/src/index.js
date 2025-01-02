@@ -45,12 +45,12 @@ exports.db = db;
 //   package: 'sample-plugin',
 //   isRelative: true,
 // })
-manager.registerPlugin({
-    name: 'node-plugin',
-    package: 'node-plugin',
-    isRelative: true,
-    options: { userChoice: 'yarn' }
-});
+// manager.registerPlugin({
+//   name: 'node-plugin',
+//   package: 'node-plugin',
+//   isRelative: true,
+//   options: { userChoice: 'pnpm' }
+// })
 const generateHTML = (title, article) => {
     const data = [
         { type: 'head', content: [{ type: 'title', content: title }] },
@@ -69,7 +69,7 @@ const generateHTML = (title, article) => {
 commander_1.program
     .version('0.1.0')
     .description('Syntaxer CLI')
-    .option('-l, --link <type>', 'give link to convert')
+    .option('-l, --link <type>', 'link to convert')
     .action(async (options) => {
     if (options.link) {
         const link = options.link;
@@ -139,13 +139,19 @@ commander_1.program
         generateHTML(title, data);
     }
     else {
-        await db.addPluginsFromManager(manager);
-        console.log(await db.getPluginList());
+        // await db.addPluginsFromManager(manager)
+        // console.log(await db.getPluginList())
         // const plugin = manager.loadPlugin<SyntaxerPlugin>('sample-plugin')
-        const plugin = manager.loadPlugin('node-plugin');
-        console.log(plugin.convertCommand('npm install commander'));
-        console.log('Type syntaxer -l <link>');
+        const plugins = await db.getPluginList();
+        plugins.forEach((plugin) => {
+            manager.registerPlugin(plugin);
+        });
+        // const plugin = manager.loadPlugin<SyntaxerPlugin>('node-plugin')
+        // console.log(plugin.convertCommand('npm install commander'))
+        // console.log('Type syntaxer -l <link>')
     }
 });
-commander_1.program.command('plugins', 'manage your plugins').executableDir('commands');
+commander_1.program.command('plugins', 'list of your plugins').executableDir('commands');
+commander_1.program.command('enable', 'enable plugin').executableDir('commands');
+commander_1.program.command('disable', 'disable plugin').executableDir('commands');
 commander_1.program.parse(process.argv);

@@ -1,13 +1,21 @@
 {
-    "plugins": [
-        {
-            "name": "node-plugin",
-            "package": "node-plugin",
-            "isRelative": true,
-            "options": {
-                "userChoice": "yarn"
-            },
-            "instance": {}
-        }
-    ]
+    "plugins": {
+        "enabled": [
+            {
+                "name": "node-plugin",
+                "package": "node-plugin",
+                "isRelative": true,
+                "options": {
+                    "userChoice": "yarn"
+                }
+            }
+        ],
+        "disabled": [
+            {
+                "name": "sample-plugin",
+                "package": "sample-plugin",
+                "isRelative": true
+            }
+        ]
+    }
 }

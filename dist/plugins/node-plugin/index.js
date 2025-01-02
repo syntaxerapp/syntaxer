@@ -3,9 +3,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const index_1 = require("../../src/index");
 // import { SyntaxerPlugin } from 'syntaxer'
 class NodePlugin extends index_1.SyntaxerPlugin {
+    static len = 2;
     static commands = {
         'npm': ['npm', 'install'],
-        'yarn': ['yarn', 'add']
+        'yarn': ['yarn', 'add'],
+        'pnpm': ['pnpm', 'install'] //если какой-то команды нет, то написать вместо неё в этом списке nocmd и тогда в сгенерированном html оставить команду как есть и добавить подпись, что сконверировать нельзя
     };
     convertCommand(text) {
         const userChoice = this.options.userChoice;
@@ -13,10 +15,10 @@ class NodePlugin extends index_1.SyntaxerPlugin {
             if (text.includes(key)) {
                 let out = '';
                 const textArray = text.split(' ');
-                for (let i = 0; i < NodePlugin.commands[userChoice].length; i++) {
+                for (let i = 0; i < NodePlugin.len; i++) {
                     out += NodePlugin.commands[userChoice][i] + ' ';
                 }
-                out += textArray.slice(NodePlugin.commands[userChoice].length);
+                out += textArray.slice(NodePlugin.len);
                 return out;
             }
         }

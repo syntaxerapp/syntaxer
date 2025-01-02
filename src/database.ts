@@ -3,6 +3,15 @@ import { IPlugin, PluginManager } from './plugin-manager'
 
 class Database {
     db = new JsonDB(new Config('syntaxerConfig', true, true, '/'))
+
+    async getPluginList() {
+        return await this.db.getData('/plugins/enabled')
+    }
+
+    async getDisabledPluginList() {
+        return await this.db.getData('/plugins/disabled')
+    }
+
     async addPlugin(plugin: IPlugin) {
         const plugins = await this.getPluginList()
         let toAdd = true
@@ -12,19 +21,27 @@ class Database {
             }
         })
         if (toAdd) {
-            await this.db.push('/plugins[]', plugin, true)
+            await this.db.push('/plugins/enabled[]', plugin, true)
         }
         // const result = await this.db.getObject<IPlugin>('/plugins')
     }
+
+    async enablePlugin(plugin: IPlugin, index: number) {
+        await this.db.delete(`/plugins/disabled[${index}]`)
+        await this.db.push('/plugins/enabled[]', plugin, true)
+    }
+
+    async disablePlugin(plugin: IPlugin, index: number) {
+        await this.db.delete(`/plugins/enabled[${index}]`)
+        await this.db.push('/plugins/disabled[]', plugin, true)
+    }
+
     async addPluginsFromManager(manager: PluginManager) {
         manager.listPluginList().forEach(async (plugin) => {
             await this.addPlugin(plugin)
         })
     }
 
-    async getPluginList() {
-        return await this.db.getData('/plugins')
-    }
 }
 
 export default Database
