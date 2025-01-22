@@ -28,23 +28,20 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.db = exports.manager = exports.SyntaxerPlugin = void 0;
-const commander_1 = require("commander");
-const cheerio = __importStar(require("cheerio"));
-const html_creator_1 = __importDefault(require("html-creator"));
-const slugify_1 = __importDefault(require("slugify"));
-const axios_1 = __importDefault(require("axios"));
 const node_fs_1 = __importDefault(require("node:fs"));
+const node_path_1 = __importDefault(require("node:path"));
+const slugify_1 = __importDefault(require("slugify"));
+const database_1 = __importDefault(require("./database"));
+const cheerio = __importStar(require("cheerio"));
+const commander_1 = require("commander");
+const html_creator_1 = __importDefault(require("html-creator"));
+const article_extractor_1 = require("@extractus/article-extractor");
 const plugin_manager_1 = require("./plugin-manager");
 Object.defineProperty(exports, "SyntaxerPlugin", { enumerable: true, get: function () { return plugin_manager_1.SyntaxerPlugin; } });
-const database_1 = __importDefault(require("./database"));
-const node_path_1 = __importDefault(require("node:path"));
 const manager = new plugin_manager_1.PluginManager(__dirname);
 exports.manager = manager;
 const db = new database_1.default();
 exports.db = db;
-function findKeyByValue(dict, value) {
-    return Object.keys(dict).find(key => dict[key] === value);
-}
 //TODO: recursive article generation (for tables etc)
 // const generateArticle = ($: any, from: any[], article: any[] = []) => {
 //   for (let i = 0; i < from.length; i++) {
@@ -129,83 +126,95 @@ commander_1.program
     });
     if (options.link) {
         const link = options.link;
-        const response = await axios_1.default.get(link);
-        const html = response.data;
-        const $ = cheerio.load(html);
-        var title = $('title').text();
-        const inc = Math.max(title.indexOf('|'), title.indexOf('/'), title.indexOf('\\'));
-        if (inc > 0) {
-            title = title.slice(0, inc);
+        // const response = await axios.get(link)
+        try {
+            const parsed = await (0, article_extractor_1.extract)(link);
+            if (!parsed?.content) {
+                throw new Error('Could not extract content from the link');
+            }
+            if (!parsed?.title) {
+                throw new Error('Could not extract content from the link');
+            }
+            const html = parsed.content;
+            let title = parsed.title;
+            const $ = cheerio.load(html);
+            const inc = Math.max(title.indexOf('|'), title.indexOf('/'), title.indexOf('\\'));
+            if (inc > 0) {
+                title = title.slice(0, inc);
+            }
+            const article = generateArticle($, $('h1, h2, h3, p, pre, table, ul, il, a, img, ol, tr, td'));
+            // let article: any[] = []
+            // $('h1, h2, h3, p, pre, table, ul, il, a, img, ol').each(
+            //   (_index: number, element: any) => {
+            //     if (element.name == 'ol' || element.name == 'table') {
+            //       $(element.childNodes).each(
+            //         (_index: number, element: any) => {
+            //           article.push($(element))
+            //         }
+            //       )
+            //     } else {
+            //       article.push($(element))
+            //     }
+            //   }
+            // )
+            // console.log(article)
+            // console.log(1)
+            // console.log(generateArticle($, $('h1, h2, h3, p, pre, table, ul, il, a, img, ol')))
+            //TODO: 15th string
+            // let from: any[] = []
+            // $('h1, h2, h3, p, pre, table, ul, il, a, img, ol').each(
+            //   (_index: number, element: any) => {
+            //     from.push($(element))
+            //   }
+            // )
+            // const article: any[] = generateArticle($, from)
+            // $('header').each((_index: number, element: any) => {
+            //   // console.log($(element.childNodes[0].name))
+            //   // console.log($(element))
+            // })
+            let data = [];
+            const commandsDict = await db.getCommands();
+            const commands = Object.values(commandsDict).flat(1);
+            // console.log(commandsDict, commands)
+            // console.log('Title:', title)
+            article.forEach((element) => {
+                const name = element[0].name;
+                const _class = element[0].class;
+                const href = element[0].href;
+                let text = element.text();
+                for (let i = 0; i < commands.length; i++) {
+                    const command = commands[i].toLowerCase();
+                    if (text.includes(command)) {
+                        const pluginName = String(Object.keys(commandsDict).find(key => commandsDict[key].includes(command)));
+                        const plugin = manager.loadPlugin(pluginName);
+                        text = text.replace(command, plugin.convertCommand(command));
+                    }
+                }
+                let el = {
+                    type: name,
+                    content: text,
+                    attributes: {},
+                };
+                let attributes = {};
+                // if ((name == 'p') | name.includes('h') | (name == 'a')) {
+                //   el['content'] = text
+                // }
+                if (name == 'a') {
+                    if (href) {
+                        attributes.href = href;
+                    }
+                }
+                if (Object.keys(attributes).length != 0) {
+                    el.attributes = attributes;
+                }
+                data.push(el);
+            });
+            // console.log(data)
+            generateHTML(title, data);
         }
-        const article = generateArticle($, $('h1, h2, h3, p, pre, table, ul, il, a, img, ol, tr, td'));
-        // let article: any[] = []
-        // $('h1, h2, h3, p, pre, table, ul, il, a, img, ol').each(
-        //   (_index: number, element: any) => {
-        //     if (element.name == 'ol' || element.name == 'table') {
-        //       $(element.childNodes).each(
-        //         (_index: number, element: any) => {
-        //           article.push($(element))
-        //         }
-        //       )
-        //     } else {
-        //       article.push($(element))
-        //     }
-        //   }
-        // )
-        // console.log(article)
-        // console.log(1)
-        // console.log(generateArticle($, $('h1, h2, h3, p, pre, table, ul, il, a, img, ol')))
-        //TODO: 15th string
-        // let from: any[] = []
-        // $('h1, h2, h3, p, pre, table, ul, il, a, img, ol').each(
-        //   (_index: number, element: any) => {
-        //     from.push($(element))
-        //   }
-        // )
-        // const article: any[] = generateArticle($, from)
-        // $('header').each((_index: number, element: any) => {
-        //   // console.log($(element.childNodes[0].name))
-        //   // console.log($(element))
-        // })
-        let data = [];
-        const commandsDict = await db.getCommands();
-        const commands = Object.values(commandsDict).flat(1);
-        // console.log(commandsDict, commands)
-        // console.log('Title:', title)
-        article.forEach((element) => {
-            const name = element[0].name;
-            const _class = element[0].class;
-            const href = element[0].href;
-            let text = element.text();
-            for (let i = 0; i < commands.length; i++) {
-                const command = commands[i].toLowerCase();
-                if (text.includes(command)) {
-                    const pluginName = String(Object.keys(commandsDict).find(key => commandsDict[key].includes(command)));
-                    const plugin = manager.loadPlugin(pluginName);
-                    text = text.replace(command, plugin.convertCommand(command));
-                }
-            }
-            let el = {
-                type: name,
-                content: text,
-                attributes: {},
-            };
-            let attributes = {};
-            // if ((name == 'p') | name.includes('h') | (name == 'a')) {
-            //   el['content'] = text
-            // }
-            if (name == 'a') {
-                if (href) {
-                    attributes.href = href;
-                }
-            }
-            if (Object.keys(attributes).length != 0) {
-                el.attributes = attributes;
-            }
-            data.push(el);
-        });
-        // console.log(data)
-        generateHTML(title, data);
+        catch (err) {
+            console.log(err);
+        }
     }
 });
 commander_1.program.command('plugins', 'list of your plugins').executableDir('commands');
