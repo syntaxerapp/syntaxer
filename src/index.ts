@@ -12,6 +12,14 @@ import path from 'node:path'
 const manager = new PluginManager(__dirname)
 const db = new Database()
 
+interface IDictionary {
+  [key: string]: string
+}
+
+function findKeyByValue(dict: IDictionary, value: string): string | undefined {
+  return Object.keys(dict).find(key => dict[key] === value)
+}
+
 //TODO: recursive article generation (for tables etc)
 // const generateArticle = ($: any, from: any[], article: any[] = []) => {
 //   for (let i = 0; i < from.length; i++) {
@@ -30,6 +38,35 @@ const db = new Database()
 //   return article
 // }
 
+const generateArticle = ($: any, element: any): any[] => {
+  let childs: any[] = []
+
+  $(element).contents().each((_index: number, child: any) => {
+    if ($(child).contents().length > 1) {
+      childs = childs.concat(generateArticle($, child))
+    }
+    else {
+      childs.push($(child))
+    }
+  })
+
+  return childs
+}
+
+// const generateArticle = ($: any, element: any): any[] => {
+//   let article: any[] = []
+//   element.each(
+//     (_index: number, element: any) => {
+//       if (element.name == 'ol' || element.name == 'table') {
+//         article = article.concat(generateArticle($, $(element.childNodes)))
+//       } else {
+//         article.push($(element))
+//       }
+//     }
+//   )
+//   return article
+// }
+
 const generateHTML = (title: string, article: any[]) => {
   fs.readFile('src/style.css', 'utf8', (err: any, content: string) => {
     if (err) {
@@ -43,24 +80,24 @@ const generateHTML = (title: string, article: any[]) => {
           { type: 'title', content: title },
           {
             type: 'style',
-          content: content,
-        },
-      ],
-    },
-    {
-      type: 'body',
-      // attributes: { style: 'padding: 1rem' },
-      content: article,
-    },
-  ]
-  
-  const html = new htmlCreator(data)
-  const slugified_title = slugify(title).toLowerCase()
-  const os = require('os').homedir()
-  const Path = path.join(os, 'syntaxer', 'generated', `${slugified_title}.html`)
-  html.renderHTMLToFile(Path)
-  console.log(`Your file: file://${Path}`)
-})
+            content: content,
+          },
+        ],
+      },
+      {
+        type: 'body',
+        // attributes: { style: 'padding: 1rem' },
+        content: article,
+      },
+    ]
+
+    const html = new htmlCreator(data)
+    const slugified_title = slugify(title).toLowerCase()
+    const os = require('os').homedir()
+    const Path = path.join(os, 'syntaxer', 'generated', `${slugified_title}.html`)
+    html.renderHTMLToFile(Path)
+    console.log(`Your file: file://${Path}`)
+  })
 }
 
 program
@@ -89,20 +126,24 @@ program
         title = title.slice(0, inc)
       }
 
-      const article: any[] = []
-      $('h1, h2, h3, p, pre, table, ul, il, a, img, ol').each(
-        (_index: number, element: any) => {
-          if (element.name == 'ol' || element.name == 'table') {
-            $(element.childNodes).each(
-              (_index: number, element: any) => {
-                article.push($(element))
-              }
-            )
-          } else {
-            article.push($(element))
-          }
-        }
-      )
+      const article: any[] = generateArticle($, $('h1, h2, h3, p, pre, table, ul, il, a, img, ol, tr, td'))
+      // let article: any[] = []
+      // $('h1, h2, h3, p, pre, table, ul, il, a, img, ol').each(
+      //   (_index: number, element: any) => {
+      //     if (element.name == 'ol' || element.name == 'table') {
+      //       $(element.childNodes).each(
+      //         (_index: number, element: any) => {
+      //           article.push($(element))
+      //         }
+      //       )
+      //     } else {
+      //       article.push($(element))
+      //     }
+      //   }
+      // )
+      // console.log(article)
+      // console.log(1)
+      // console.log(generateArticle($, $('h1, h2, h3, p, pre, table, ul, il, a, img, ol')))
       //TODO: 15th string
       // let from: any[] = []
       // $('h1, h2, h3, p, pre, table, ul, il, a, img, ol').each(
@@ -111,18 +152,30 @@ program
       //   }
       // )
       // const article: any[] = generateArticle($, from)
-      $('header').each((_index: number, element: any) => {
-        // console.log($(element.childNodes[0].name))
-        // console.log($(element))
-      })
+      // $('header').each((_index: number, element: any) => {
+      //   // console.log($(element.childNodes[0].name))
+      //   // console.log($(element))
+      // })
       let data: any[] = []
+      const commandsDict: Record<string, string[]> = await db.getCommands()
+      const commands: string[] = Object.values(commandsDict).flat(1)
+      // console.log(commandsDict, commands)
 
       // console.log('Title:', title)
       article.forEach((element) => {
         const name = element[0].name
         const _class = element[0].class
         const href = element[0].href
-        const text = element.text()
+        let text = element.text()
+
+        for (let i = 0; i < commands.length; i++) {
+          const command = commands[i].toLowerCase()
+          if (text.includes(command)) {
+            const pluginName = String(Object.keys(commandsDict).find(key => commandsDict[key as keyof typeof commandsDict].includes(command)))
+            const plugin = manager.loadPlugin(pluginName) as SyntaxerPlugin
+            text = text.replace(command, plugin.convertCommand(command))
+          }
+        }
 
         let el = {
           type: name,

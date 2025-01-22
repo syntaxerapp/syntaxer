@@ -17,5 +17,8 @@
                 "isRelative": true
             }
         ]
+    },
+    "commands": {
+        "node-plugin": ["npm", "yarn", "pnpm"]
     }
 }

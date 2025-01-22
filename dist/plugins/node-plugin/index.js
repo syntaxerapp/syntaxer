@@ -9,6 +9,7 @@ class NodePlugin extends index_1.SyntaxerPlugin {
         'yarn': ['yarn', 'add'],
         'pnpm': ['pnpm', 'install'] //если какой-то команды нет, то написать вместо неё в этом списке nocmd и тогда в сгенерированном html оставить команду как есть и добавить подпись, что сконверировать нельзя
     };
+    command = 'npm';
     convertCommand(text) {
         const userChoice = this.options.userChoice;
         for (const key in NodePlugin.commands) {

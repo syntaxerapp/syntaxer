@@ -42,6 +42,9 @@ const manager = new plugin_manager_1.PluginManager(__dirname);
 exports.manager = manager;
 const db = new database_1.default();
 exports.db = db;
+function findKeyByValue(dict, value) {
+    return Object.keys(dict).find(key => dict[key] === value);
+}
 //TODO: recursive article generation (for tables etc)
 // const generateArticle = ($: any, from: any[], article: any[] = []) => {
 //   for (let i = 0; i < from.length; i++) {
@@ -57,6 +60,31 @@ exports.db = db;
 //       return article
 //     }
 //   }
+//   return article
+// }
+const generateArticle = ($, element) => {
+    let childs = [];
+    $(element).contents().each((_index, child) => {
+        if ($(child).contents().length > 1) {
+            childs = childs.concat(generateArticle($, child));
+        }
+        else {
+            childs.push($(child));
+        }
+    });
+    return childs;
+};
+// const generateArticle = ($: any, element: any): any[] => {
+//   let article: any[] = []
+//   element.each(
+//     (_index: number, element: any) => {
+//       if (element.name == 'ol' || element.name == 'table') {
+//         article = article.concat(generateArticle($, $(element.childNodes)))
+//       } else {
+//         article.push($(element))
+//       }
+//     }
+//   )
 //   return article
 // }
 const generateHTML = (title, article) => {
@@ -109,17 +137,24 @@ commander_1.program
         if (inc > 0) {
             title = title.slice(0, inc);
         }
-        const article = [];
-        $('h1, h2, h3, p, pre, table, ul, il, a, img, ol').each((_index, element) => {
-            if (element.name == 'ol' || element.name == 'table') {
-                $(element.childNodes).each((_index, element) => {
-                    article.push($(element));
-                });
-            }
-            else {
-                article.push($(element));
-            }
-        });
+        const article = generateArticle($, $('h1, h2, h3, p, pre, table, ul, il, a, img, ol, tr, td'));
+        // let article: any[] = []
+        // $('h1, h2, h3, p, pre, table, ul, il, a, img, ol').each(
+        //   (_index: number, element: any) => {
+        //     if (element.name == 'ol' || element.name == 'table') {
+        //       $(element.childNodes).each(
+        //         (_index: number, element: any) => {
+        //           article.push($(element))
+        //         }
+        //       )
+        //     } else {
+        //       article.push($(element))
+        //     }
+        //   }
+        // )
+        // console.log(article)
+        // console.log(1)
+        // console.log(generateArticle($, $('h1, h2, h3, p, pre, table, ul, il, a, img, ol')))
         //TODO: 15th string
         // let from: any[] = []
         // $('h1, h2, h3, p, pre, table, ul, il, a, img, ol').each(
@@ -128,17 +163,28 @@ commander_1.program
         //   }
         // )
         // const article: any[] = generateArticle($, from)
-        $('header').each((_index, element) => {
-            // console.log($(element.childNodes[0].name))
-            // console.log($(element))
-        });
+        // $('header').each((_index: number, element: any) => {
+        //   // console.log($(element.childNodes[0].name))
+        //   // console.log($(element))
+        // })
         let data = [];
+        const commandsDict = await db.getCommands();
+        const commands = Object.values(commandsDict).flat(1);
+        // console.log(commandsDict, commands)
         // console.log('Title:', title)
         article.forEach((element) => {
             const name = element[0].name;
             const _class = element[0].class;
             const href = element[0].href;
-            const text = element.text();
+            let text = element.text();
+            for (let i = 0; i < commands.length; i++) {
+                const command = commands[i].toLowerCase();
+                if (text.includes(command)) {
+                    const pluginName = String(Object.keys(commandsDict).find(key => commandsDict[key].includes(command)));
+                    const plugin = manager.loadPlugin(pluginName);
+                    text = text.replace(command, plugin.convertCommand(command));
+                }
+            }
             let el = {
                 type: name,
                 content: text,

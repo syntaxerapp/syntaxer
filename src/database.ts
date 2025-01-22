@@ -1,5 +1,5 @@
 import { JsonDB, Config } from 'node-json-db'
-import { IPlugin, PluginManager } from './plugin-manager'
+import { IPlugin, PluginManager, SyntaxerPlugin } from './plugin-manager'
 
 class Database {
     db = new JsonDB(new Config('syntaxerConfig', true, true, '/'))
@@ -10,6 +10,10 @@ class Database {
 
     async getDisabledPluginList() {
         return await this.db.getData('/plugins/disabled')
+    }
+
+    async getCommands() {
+        return await this.db.getData('/commands')
     }
 
     async addPlugin(plugin: IPlugin) {
@@ -34,6 +38,10 @@ class Database {
         await this.db.delete(`/plugins/enabled[${index}]`)
         await this.db.push('/plugins/disabled[]', plugin, true)
     }
+
+    // async registerPluginCommands(plugin: SyntaxerPlugin) {
+    //     await console.log(plugin)
+    // }
 }
 
 export default Database

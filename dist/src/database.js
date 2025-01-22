@@ -9,6 +9,9 @@ class Database {
     async getDisabledPluginList() {
         return await this.db.getData('/plugins/disabled');
     }
+    async getCommands() {
+        return await this.db.getData('/commands');
+    }
     async addPlugin(plugin) {
         const plugins = await this.getPluginList();
         let toAdd = true;
