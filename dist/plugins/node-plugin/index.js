@@ -5,7 +5,7 @@ const index_1 = require("../../src/index");
 class NodePlugin extends index_1.SyntaxerPlugin {
     static len = 2;
     static commands = {
-        npm: [
+        'npm': [
             'npm',
             'install -g',
             'install',
@@ -15,7 +15,7 @@ class NodePlugin extends index_1.SyntaxerPlugin {
             'update',
             'view',
         ],
-        yarn: [
+        'yarn': [
             'yarn',
             'global add',
             'add',
@@ -25,7 +25,7 @@ class NodePlugin extends index_1.SyntaxerPlugin {
             'upgrade',
             'info',
         ],
-        pnpm: [
+        'pnpm': [
             'pnpm',
             'install --global',
             'install',
@@ -34,7 +34,7 @@ class NodePlugin extends index_1.SyntaxerPlugin {
             '--save-dev',
             'update',
             'info',
-        ], //если какой-то команды нет, то написать вместо неё в этом списке nocmd и тогда в сгенерированном html оставить команду как есть и добавить подпись, что сконверировать нельзя
+        ],
     };
     convertCommand(text) {
         const userChoice = this.options.userChoice;
@@ -44,7 +44,7 @@ class NodePlugin extends index_1.SyntaxerPlugin {
                 for (let i in NodePlugin.commands[key]) {
                     const searchValue = NodePlugin.commands[key][i];
                     const replaceValue = NodePlugin.commands[userChoice][i];
-                    out = out.replace(searchValue, replaceValue);
+                    out = out.replace(searchValue + ' ', replaceValue + ' ');
                 }
                 return out;
             }

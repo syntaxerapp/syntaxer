@@ -4,7 +4,7 @@ import { SyntaxerPlugin } from '../../src/index'
 class NodePlugin extends SyntaxerPlugin {
   static len = 2
   static commands = {
-    npm: [
+    'npm': [
       'npm',
       'install -g',
       'install',
@@ -14,7 +14,7 @@ class NodePlugin extends SyntaxerPlugin {
       'update',
       'view',
     ],
-    yarn: [
+    'yarn': [
       'yarn',
       'global add',
       'add',
@@ -24,7 +24,7 @@ class NodePlugin extends SyntaxerPlugin {
       'upgrade',
       'info',
     ],
-    pnpm: [
+    'pnpm': [
       'pnpm',
       'install --global',
       'install',
@@ -33,7 +33,7 @@ class NodePlugin extends SyntaxerPlugin {
       '--save-dev',
       'update',
       'info',
-    ], //если какой-то команды нет, то написать вместо неё в этом списке nocmd и тогда в сгенерированном html оставить команду как есть и добавить подпись, что сконверировать нельзя
+    ],
   }
   convertCommand(text: string): string {
     const userChoice: string = this.options.userChoice
@@ -43,7 +43,7 @@ class NodePlugin extends SyntaxerPlugin {
         for (let i in NodePlugin.commands[key as keyof typeof NodePlugin.commands]) {
           const searchValue = NodePlugin.commands[key as keyof typeof NodePlugin.commands][i]
           const replaceValue = NodePlugin.commands[userChoice as keyof typeof NodePlugin.commands][i]
-          out = out.replace(searchValue, replaceValue)
+          out = out.replace(searchValue + ' ', replaceValue + ' ')
         }
         return out
       }

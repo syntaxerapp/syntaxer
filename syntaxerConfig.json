@@ -8,6 +8,14 @@
                 "options": {
                     "userChoice": "yarn"
                 }
+            },
+            {
+                "name": "packager",
+                "package": "packager",
+                "isRelative": true,
+                "options": {
+                    "userChoice": "dnf"
+                }
             }
         ],
         "disabled": [
@@ -19,6 +27,7 @@
         ]
     },
     "commands": {
-        "node-plugin": ["npm", "yarn", "pnpm"]
+        "node-plugin": ["npm", "yarn", "pnpm"],
+        "packager": ["apt", "apt-get", "dnf", "pacman"]
     }
 }

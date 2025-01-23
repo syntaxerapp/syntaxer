@@ -6,9 +6,7 @@ import path from 'node:path'
 import slugify from 'slugify'
 import { JSDOM, VirtualConsole } from 'jsdom'
 import Database from './database'
-import * as cheerio from 'cheerio'
 import { program } from 'commander'
-import htmlCreator from 'html-creator'
 import { Readability } from '@mozilla/readability'
 import { IPlugin, PluginManager, SyntaxerPlugin } from './plugin-manager'
 
@@ -59,8 +57,6 @@ program
               )
             )
             const plugin = manager.loadPlugin(pluginName) as SyntaxerPlugin
-            // const pluginCommands = plugin.commands
-            // console.log(pluginName, pluginCommands)
             content[i] = plugin.convertCommand(line)
           }
         }

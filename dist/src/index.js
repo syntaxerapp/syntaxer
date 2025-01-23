@@ -53,8 +53,6 @@ commander_1.program
                 if (line.includes(command)) {
                     const pluginName = String(Object.keys(commandsDict).find((key) => commandsDict[key].includes(command)));
                     const plugin = manager.loadPlugin(pluginName);
-                    // const pluginCommands = plugin.commands
-                    // console.log(pluginName, pluginCommands)
                     content[i] = plugin.convertCommand(line);
                 }
             }
