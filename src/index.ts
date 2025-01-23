@@ -4,7 +4,7 @@ import fs from 'node:fs'
 import axios from 'axios'
 import path from 'node:path'
 import slugify from 'slugify'
-import { JSDOM } from 'jsdom'
+import { JSDOM, VirtualConsole } from 'jsdom'
 import Database from './database'
 import * as cheerio from 'cheerio'
 import { program } from 'commander'
@@ -30,7 +30,10 @@ program
       const response = await axios.get(link)
       const html = response.data
 
-      const doc = new JSDOM(html, { url: link })
+      const doc = new JSDOM(html, {
+        url: link,
+        virtualConsole: new VirtualConsole().on('error', () => { /* No-op */ })
+      })
       const reader = new Readability(doc.window.document)
       const article = reader.parse()
 
@@ -40,14 +43,14 @@ program
 
       let title = article.title
       const lang = article.lang
-      
+
       let content = article.content.split(/\r?\n|\r|\n/g)
       const commandsDict: Record<string, string[]> = await db.getCommands()
       const commands: string[] = Object.values(commandsDict).flat(1)
 
       for (let i in content) {
         let line = content[i]
-        for (const j in commands) {
+        for (let j in commands) {
           const command = commands[j]
           if (line.includes(command)) {
             const pluginName = String(
@@ -56,10 +59,9 @@ program
               )
             )
             const plugin = manager.loadPlugin(pluginName) as SyntaxerPlugin
-            content[i] = line.replace(
-              line,
-              plugin.convertCommand(command)
-            )
+            // const pluginCommands = plugin.commands
+            // console.log(pluginName, pluginCommands)
+            content[i] = plugin.convertCommand(line)
           }
         }
       }
@@ -108,9 +110,11 @@ ${content.join('')}
         `${slugified_title}.html`
       )
       fs.writeFile(Path, htmlContent, (err) => {
-        return console.log(err)
+        if (err) {
+          return console.log(err)
+        }
+        console.log(`Your file: file://${Path}`)
       })
-      console.log(`Your file: file://${Path}`)
     }
   })
 

@@ -19,20 +19,6 @@ const manager = new plugin_manager_1.PluginManager(__dirname);
 exports.manager = manager;
 const db = new database_1.default();
 exports.db = db;
-const generateArticle = ($, element) => {
-    let childs = [];
-    $(element)
-        .contents()
-        .each((_index, child) => {
-        if ($(child).contents().length > 1) {
-            childs = childs.concat(generateArticle($, child));
-        }
-        else {
-            childs.push($(child));
-        }
-    });
-    return childs;
-};
 commander_1.program
     .version('0.1.0')
     .description('Syntaxer CLI')
@@ -46,7 +32,10 @@ commander_1.program
         const link = options.link;
         const response = await axios_1.default.get(link);
         const html = response.data;
-        const doc = new jsdom_1.JSDOM(html, { url: link });
+        const doc = new jsdom_1.JSDOM(html, {
+            url: link,
+            virtualConsole: new jsdom_1.VirtualConsole().on('error', () => { })
+        });
         const reader = new readability_1.Readability(doc.window.document);
         const article = reader.parse();
         if (!article) {
@@ -57,25 +46,19 @@ commander_1.program
         let content = article.content.split(/\r?\n|\r|\n/g);
         const commandsDict = await db.getCommands();
         const commands = Object.values(commandsDict).flat(1);
-        // for (let i in content) {
-        //   let line = content[i]
-        //   for (const j in commands) {
-        //     const command = commands[j]
-        //     if (line.includes(command)) {
-        //       const pluginName = String(
-        //         Object.keys(commandsDict).find((key) =>
-        //           commandsDict[key as keyof typeof commandsDict].includes(command)
-        //         )
-        //       )
-        //       const plugin = manager.loadPlugin(pluginName) as SyntaxerPlugin
-        //       content[i] = line.replace(
-        //         line,
-        //         plugin.convertCommand(command)
-        //       )
-        //     }
-        //   }
-        // }
-        // console.log(content)
+        for (let i in content) {
+            let line = content[i];
+            for (let j in commands) {
+                const command = commands[j];
+                if (line.includes(command)) {
+                    const pluginName = String(Object.keys(commandsDict).find((key) => commandsDict[key].includes(command)));
+                    const plugin = manager.loadPlugin(pluginName);
+                    // const pluginCommands = plugin.commands
+                    // console.log(pluginName, pluginCommands)
+                    content[i] = plugin.convertCommand(line);
+                }
+            }
+        }
         const htmlContent = `<!DOCTYPE html>
 <html lang="${lang}">
 <head>
@@ -109,44 +92,11 @@ ${content.join('')}
         const slugified_title = (0, slugify_1.default)(title).toLowerCase();
         const Path = node_path_1.default.join(os, 'syntaxer', 'generated', `${slugified_title}.html`);
         node_fs_1.default.writeFile(Path, htmlContent, (err) => {
-            return console.log(err);
+            if (err) {
+                return console.log(err);
+            }
+            console.log(`Your file: file://${Path}`);
         });
-        console.log(`Your file: file://${Path}`);
-        let data = [];
-        // content.forEach((element) => {
-        //   const name = element[0].name
-        //   const _class = element[0].class
-        //   const href = element[0].href
-        //   let text = element.text()
-        //   for (let i = 0; i < commands.length; i++) {
-        //     const command = commands[i].toLowerCase()
-        //     if (text.includes(command)) {
-        //       const pluginName = String(Object.keys(commandsDict).find(key => commandsDict[key as keyof typeof commandsDict].includes(command)))
-        //       const plugin = manager.loadPlugin(pluginName) as SyntaxerPlugin
-        //       text = text.replace(command, plugin.convertCommand(command))
-        //     }
-        //   }
-        //   let el = {
-        //     type: name,
-        //     content: text,
-        //     attributes: {},
-        //   }
-        //   let attributes: Record<string, any> = {}
-        //   // if ((name == 'p') | name.includes('h') | (name == 'a')) {
-        //   //   el['content'] = text
-        //   // }
-        //   if (name == 'a') {
-        //     if (href) {
-        //       attributes.href = href
-        //     }
-        //   }
-        //   if (Object.keys(attributes).length != 0) {
-        //     el.attributes = attributes
-        //   }
-        //   data.push(el)
-        // })
-        // // console.log(data)
-        // generateHTML(title, data)
     }
 });
 commander_1.program.command('plugins', 'list of your plugins').executableDir('commands');
