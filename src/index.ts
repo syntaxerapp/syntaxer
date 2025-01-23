@@ -4,33 +4,17 @@ import fs from 'node:fs'
 import axios from 'axios'
 import path from 'node:path'
 import slugify from 'slugify'
+import { JSDOM } from 'jsdom'
 import Database from './database'
 import * as cheerio from 'cheerio'
 import { program } from 'commander'
 import htmlCreator from 'html-creator'
-import { extract } from '@extractus/article-extractor'
+import Generator from '@builder/html-generator'
+import { Readability } from '@mozilla/readability'
 import { IPlugin, PluginManager, SyntaxerPlugin } from './plugin-manager'
 
 const manager = new PluginManager(__dirname)
 const db = new Database()
-
-//TODO: recursive article generation (for tables etc)
-// const generateArticle = ($: any, from: any[], article: any[] = []) => {
-//   for (let i = 0; i < from.length; i++) {
-//     const element = from[i]
-//     if (element.name == 'ol' || element.name == 'table') {
-//       let childs: any[] = []
-//       $(element.childNodes).each((_index: number, element: any) => {
-//         childs.push($(element))
-//       })
-//       return generateArticle($, childs, article)
-//     } else {
-//       article.push($(element))
-//       return article
-//     }
-//   }
-//   return article
-// }
 
 const generateArticle = ($: any, element: any): any[] => {
   let childs: any[] = []
@@ -47,53 +31,6 @@ const generateArticle = ($: any, element: any): any[] => {
   return childs
 }
 
-// const generateArticle = ($: any, element: any): any[] => {
-//   let article: any[] = []
-//   element.each(
-//     (_index: number, element: any) => {
-//       if (element.name == 'ol' || element.name == 'table') {
-//         article = article.concat(generateArticle($, $(element.childNodes)))
-//       } else {
-//         article.push($(element))
-//       }
-//     }
-//   )
-//   return article
-// }
-
-const generateHTML = (title: string, article: any[]) => {
-  fs.readFile('src/style.css', 'utf8', (err: any, content: string) => {
-    if (err) {
-      console.error(err)
-      return
-    }
-    const data = [
-      {
-        type: 'head',
-        content: [
-          { type: 'title', content: title },
-          {
-            type: 'style',
-            content: content,
-          },
-        ],
-      },
-      {
-        type: 'body',
-        // attributes: { style: 'padding: 1rem' },
-        content: article,
-      },
-    ]
-
-    const html = new htmlCreator(data)
-    const slugified_title = slugify(title).toLowerCase()
-    const os = require('os').homedir()
-    const Path = path.join(os, 'syntaxer', 'generated', `${slugified_title}.html`)
-    html.renderHTMLToFile(Path)
-    console.log(`Your file: file://${Path}`)
-  })
-}
-
 program
   .version('0.1.0')
   .description('Syntaxer CLI')
@@ -106,107 +43,96 @@ program
     if (options.link) {
       const link = options.link
 
-      // const response = await axios.get(link)
-      try {
-        const parsed = await extract(link)
-        if (!parsed?.content) {
-          throw new Error('Could not extract content from the link')
-        }
-        if (!parsed?.title) {
-          throw new Error('Could not extract content from the link')
-        }
-        const html = parsed.content
-        let title = parsed.title
+      const response = await axios.get(link)
+      const html = response.data
 
-        const $ = cheerio.load(html)
-        const inc = Math.max(
-          title.indexOf('|'),
-          title.indexOf('/'),
-          title.indexOf('\\')
-        )
-        if (inc > 0) {
-          title = title.slice(0, inc)
-        }
+      const doc = new JSDOM(html, { url: link })
+      const reader = new Readability(doc.window.document)
+      const article = reader.parse()
 
-        const article: any[] = generateArticle($, $('h1, h2, h3, p, pre, table, ul, il, a, img, ol, tr, td'))
-        // let article: any[] = []
-        // $('h1, h2, h3, p, pre, table, ul, il, a, img, ol').each(
-        //   (_index: number, element: any) => {
-        //     if (element.name == 'ol' || element.name == 'table') {
-        //       $(element.childNodes).each(
-        //         (_index: number, element: any) => {
-        //           article.push($(element))
-        //         }
-        //       )
-        //     } else {
-        //       article.push($(element))
-        //     }
-        //   }
-        // )
-        // console.log(article)
-        // console.log(1)
-        // console.log(generateArticle($, $('h1, h2, h3, p, pre, table, ul, il, a, img, ol')))
-        //TODO: 15th string
-        // let from: any[] = []
-        // $('h1, h2, h3, p, pre, table, ul, il, a, img, ol').each(
-        //   (_index: number, element: any) => {
-        //     from.push($(element))
-        //   }
-        // )
-        // const article: any[] = generateArticle($, from)
-        // $('header').each((_index: number, element: any) => {
-        //   // console.log($(element.childNodes[0].name))
-        //   // console.log($(element))
-        // })
-        let data: any[] = []
-        const commandsDict: Record<string, string[]> = await db.getCommands()
-        const commands: string[] = Object.values(commandsDict).flat(1)
-        // console.log(commandsDict, commands)
-
-        // console.log('Title:', title)
-        article.forEach((element) => {
-          const name = element[0].name
-          const _class = element[0].class
-          const href = element[0].href
-          let text = element.text()
-
-          for (let i = 0; i < commands.length; i++) {
-            const command = commands[i].toLowerCase()
-            if (text.includes(command)) {
-              const pluginName = String(Object.keys(commandsDict).find(key => commandsDict[key as keyof typeof commandsDict].includes(command)))
-              const plugin = manager.loadPlugin(pluginName) as SyntaxerPlugin
-              text = text.replace(command, plugin.convertCommand(command))
-            }
-          }
-
-          let el = {
-            type: name,
-            content: text,
-            attributes: {},
-          }
-          let attributes: Record<string, any> = {}
-
-          // if ((name == 'p') | name.includes('h') | (name == 'a')) {
-          //   el['content'] = text
-          // }
-
-          if (name == 'a') {
-            if (href) {
-              attributes.href = href
-            }
-          }
-
-          if (Object.keys(attributes).length != 0) {
-            el.attributes = attributes
-          }
-
-          data.push(el)
-        })
-        // console.log(data)
-        generateHTML(title, data)
-      } catch (err) {
-        console.log(err)
+      if (!article) {
+        throw new Error('Failed to parse article')
       }
+
+      let title = article.title
+      const lang = article.lang
+
+      const content = `<!DOCTYPE html>
+<html lang="${lang}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${title}</title>
+    <link rel="stylesheet" href="file:///${path.join(__dirname, 'style.css')}">
+</head>
+<body>
+${article.content}
+</body>
+</html>`
+
+      console.log(article)
+      console.log(content)
+
+      const inc = Math.max(
+        title.indexOf('|'),
+        title.indexOf('/'),
+        title.indexOf('\\')
+      )
+      if (inc > 0) {
+        title = title.slice(0, inc)
+      }
+
+      const os = require('os').homedir()
+      const slugified_title = slugify(title).toLowerCase()
+      const Path = path.join(os, 'syntaxer', 'generated', `${slugified_title}.html`)
+      fs.writeFile(Path, content, (err) => {
+        return console.log(err)
+      })
+      console.log(`Your file: file://${Path}`)
+
+      let data: any[] = []
+      const commandsDict: Record<string, string[]> = await db.getCommands()
+      const commands: string[] = Object.values(commandsDict).flat(1)
+      // content.forEach((element) => {
+      //   const name = element[0].name
+      //   const _class = element[0].class
+      //   const href = element[0].href
+      //   let text = element.text()
+
+      //   for (let i = 0; i < commands.length; i++) {
+      //     const command = commands[i].toLowerCase()
+      //     if (text.includes(command)) {
+      //       const pluginName = String(Object.keys(commandsDict).find(key => commandsDict[key as keyof typeof commandsDict].includes(command)))
+      //       const plugin = manager.loadPlugin(pluginName) as SyntaxerPlugin
+      //       text = text.replace(command, plugin.convertCommand(command))
+      //     }
+      //   }
+
+      //   let el = {
+      //     type: name,
+      //     content: text,
+      //     attributes: {},
+      //   }
+      //   let attributes: Record<string, any> = {}
+
+      //   // if ((name == 'p') | name.includes('h') | (name == 'a')) {
+      //   //   el['content'] = text
+      //   // }
+
+      //   if (name == 'a') {
+      //     if (href) {
+      //       attributes.href = href
+      //     }
+      //   }
+
+      //   if (Object.keys(attributes).length != 0) {
+      //     el.attributes = attributes
+      //   }
+
+      //   data.push(el)
+      // })
+      // // console.log(data)
+      // generateHTML(title, data)
     }
   })
 
