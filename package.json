@@ -13,7 +13,6 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@builder/html-generator": "^2.0.0",
     "@mozilla/readability": "^0.5.0",
     "@postlight/parser": "^2.2.3",
     "@types/cheerio": "^0.22.35",

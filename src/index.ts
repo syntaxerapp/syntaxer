@@ -9,27 +9,11 @@ import Database from './database'
 import * as cheerio from 'cheerio'
 import { program } from 'commander'
 import htmlCreator from 'html-creator'
-import Generator from '@builder/html-generator'
 import { Readability } from '@mozilla/readability'
 import { IPlugin, PluginManager, SyntaxerPlugin } from './plugin-manager'
 
 const manager = new PluginManager(__dirname)
 const db = new Database()
-
-const generateArticle = ($: any, element: any): any[] => {
-  let childs: any[] = []
-
-  $(element).contents().each((_index: number, child: any) => {
-    if ($(child).contents().length > 1) {
-      childs = childs.concat(generateArticle($, child))
-    }
-    else {
-      childs.push($(child))
-    }
-  })
-
-  return childs
-}
 
 program
   .version('0.1.0')
@@ -56,22 +40,55 @@ program
 
       let title = article.title
       const lang = article.lang
+      
+      let content = article.content.split(/\r?\n|\r|\n/g)
+      const commandsDict: Record<string, string[]> = await db.getCommands()
+      const commands: string[] = Object.values(commandsDict).flat(1)
 
-      const content = `<!DOCTYPE html>
+      for (let i in content) {
+        let line = content[i]
+        for (const j in commands) {
+          const command = commands[j]
+          if (line.includes(command)) {
+            const pluginName = String(
+              Object.keys(commandsDict).find((key) =>
+                commandsDict[key as keyof typeof commandsDict].includes(command)
+              )
+            )
+            const plugin = manager.loadPlugin(pluginName) as SyntaxerPlugin
+            content[i] = line.replace(
+              line,
+              plugin.convertCommand(command)
+            )
+          }
+        }
+      }
+
+      const htmlContent = `<!DOCTYPE html>
 <html lang="${lang}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${title}</title>
     <link rel="stylesheet" href="file:///${path.join(__dirname, 'style.css')}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.10/styles/atom-one-dark.min.css" />
 </head>
 <body>
-${article.content}
+${content.join('')}
+<script
+  src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.10/highlight.min.js"
+  integrity="sha256-1zu+3BnLYV9LdiY85uXMzii3bdrkelyp37e0ZyTAQh0="
+  crossorigin="anonymous"
+></script>
+<script>
+  document.addEventListener('DOMContentLoaded', (event) => {
+    document.querySelectorAll('pre code').forEach((block) => {
+      hljs.highlightBlock(block)
+    })
+  })
+</script>
 </body>
 </html>`
-
-      console.log(article)
-      console.log(content)
 
       const inc = Math.max(
         title.indexOf('|'),
@@ -84,55 +101,16 @@ ${article.content}
 
       const os = require('os').homedir()
       const slugified_title = slugify(title).toLowerCase()
-      const Path = path.join(os, 'syntaxer', 'generated', `${slugified_title}.html`)
-      fs.writeFile(Path, content, (err) => {
+      const Path = path.join(
+        os,
+        'syntaxer',
+        'generated',
+        `${slugified_title}.html`
+      )
+      fs.writeFile(Path, htmlContent, (err) => {
         return console.log(err)
       })
       console.log(`Your file: file://${Path}`)
-
-      let data: any[] = []
-      const commandsDict: Record<string, string[]> = await db.getCommands()
-      const commands: string[] = Object.values(commandsDict).flat(1)
-      // content.forEach((element) => {
-      //   const name = element[0].name
-      //   const _class = element[0].class
-      //   const href = element[0].href
-      //   let text = element.text()
-
-      //   for (let i = 0; i < commands.length; i++) {
-      //     const command = commands[i].toLowerCase()
-      //     if (text.includes(command)) {
-      //       const pluginName = String(Object.keys(commandsDict).find(key => commandsDict[key as keyof typeof commandsDict].includes(command)))
-      //       const plugin = manager.loadPlugin(pluginName) as SyntaxerPlugin
-      //       text = text.replace(command, plugin.convertCommand(command))
-      //     }
-      //   }
-
-      //   let el = {
-      //     type: name,
-      //     content: text,
-      //     attributes: {},
-      //   }
-      //   let attributes: Record<string, any> = {}
-
-      //   // if ((name == 'p') | name.includes('h') | (name == 'a')) {
-      //   //   el['content'] = text
-      //   // }
-
-      //   if (name == 'a') {
-      //     if (href) {
-      //       attributes.href = href
-      //     }
-      //   }
-
-      //   if (Object.keys(attributes).length != 0) {
-      //     el.attributes = attributes
-      //   }
-
-      //   data.push(el)
-      // })
-      // // console.log(data)
-      // generateHTML(title, data)
     }
   })
 
@@ -143,4 +121,3 @@ program.command('disable', 'disable plugin').executableDir('commands')
 program.parse(process.argv)
 
 export { SyntaxerPlugin, manager, db }
-
