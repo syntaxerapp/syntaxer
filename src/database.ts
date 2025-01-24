@@ -1,8 +1,14 @@
 import { JsonDB, Config } from 'node-json-db'
 import { IPlugin } from './plugin-manager'
+import path from 'node:path'
+import os from 'node:os'
 
 class Database {
-    db = new JsonDB(new Config('syntaxerConfig', true, true, '/'))
+    db = new JsonDB(new Config(path.join(
+        os.homedir(),
+        'syntaxer',
+        'syntaxerConfig.json'
+      ), true, true, '/'))
 
     async getPluginList() {
         return await this.db.getData('/plugins/enabled')

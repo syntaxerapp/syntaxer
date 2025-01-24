@@ -1,5 +1,6 @@
 #! /usr/bin/env node
 
+import os from 'node:os'
 import fs from 'node:fs'
 import axios from 'axios'
 import path from 'node:path'
@@ -9,6 +10,21 @@ import Database from './database'
 import { program } from 'commander'
 import { Readability } from '@mozilla/readability'
 import { IPlugin, PluginManager, SyntaxerPlugin } from './plugin-manager'
+
+const configPath = path.join(os.homedir(), 'syntaxer', 'syntaxerConfig.json')
+const defaultConfigPath = path.join(
+  __dirname,
+  '..',
+  '..',
+  'syntaxerConfig.json.default'
+)
+
+if (!fs.existsSync(configPath)) {
+  fs.copyFile(defaultConfigPath, configPath, (err) => {
+    if (err) throw err
+    console.log('syntaxerConfig.json does not exist, copied default config')
+  })
+}
 
 const manager = new PluginManager(__dirname)
 const db = new Database()
@@ -30,7 +46,9 @@ program
 
       const doc = new JSDOM(html, {
         url: link,
-        virtualConsole: new VirtualConsole().on('error', () => { /* No-op */ })
+        virtualConsole: new VirtualConsole().on('error', () => {
+          /* No-op */
+        }),
       })
       const reader = new Readability(doc.window.document)
       const article = reader.parse()
@@ -97,10 +115,10 @@ ${content.join('')}
         title = title.slice(0, inc)
       }
 
-      const os = require('os').homedir()
+      const homedir = os.homedir()
       const slugified_title = slugify(title).toLowerCase()
       const Path = path.join(
-        os,
+        homedir,
         'syntaxer',
         'generated',
         `${slugified_title}.html`

@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.db = exports.manager = exports.SyntaxerPlugin = void 0;
+const node_os_1 = __importDefault(require("node:os"));
 const node_fs_1 = __importDefault(require("node:fs"));
 const axios_1 = __importDefault(require("axios"));
 const node_path_1 = __importDefault(require("node:path"));
@@ -15,6 +16,15 @@ const commander_1 = require("commander");
 const readability_1 = require("@mozilla/readability");
 const plugin_manager_1 = require("./plugin-manager");
 Object.defineProperty(exports, "SyntaxerPlugin", { enumerable: true, get: function () { return plugin_manager_1.SyntaxerPlugin; } });
+const configPath = node_path_1.default.join(node_os_1.default.homedir(), 'syntaxer', 'syntaxerConfig.json');
+const defaultConfigPath = node_path_1.default.join(__dirname, '..', '..', 'syntaxerConfig.json.default');
+if (!node_fs_1.default.existsSync(configPath)) {
+    node_fs_1.default.copyFile(defaultConfigPath, configPath, (err) => {
+        if (err)
+            throw err;
+        console.log('source.txt was copied to destination.txt');
+    });
+}
 const manager = new plugin_manager_1.PluginManager(__dirname);
 exports.manager = manager;
 const db = new database_1.default();
@@ -34,7 +44,9 @@ commander_1.program
         const html = response.data;
         const doc = new jsdom_1.JSDOM(html, {
             url: link,
-            virtualConsole: new jsdom_1.VirtualConsole().on('error', () => { })
+            virtualConsole: new jsdom_1.VirtualConsole().on('error', () => {
+                /* No-op */
+            }),
         });
         const reader = new readability_1.Readability(doc.window.document);
         const article = reader.parse();
@@ -86,9 +98,9 @@ ${content.join('')}
         if (inc > 0) {
             title = title.slice(0, inc);
         }
-        const os = require('os').homedir();
+        const homedir = node_os_1.default.homedir();
         const slugified_title = (0, slugify_1.default)(title).toLowerCase();
-        const Path = node_path_1.default.join(os, 'syntaxer', 'generated', `${slugified_title}.html`);
+        const Path = node_path_1.default.join(homedir, 'syntaxer', 'generated', `${slugified_title}.html`);
         node_fs_1.default.writeFile(Path, htmlContent, (err) => {
             if (err) {
                 return console.log(err);
