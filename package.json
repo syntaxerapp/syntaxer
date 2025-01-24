@@ -6,7 +6,7 @@
     "build": "npx tsc"
   },
   "bin": {
-    "syntaxer": "./dist/src/index.js"
+    "syntaxer": "dist/src/index.js"
   },
   "keywords": [],
   "author": "awer",
