@@ -25,5 +25,8 @@
   },
   "devDependencies": {
     "@types/jsdom": "^21.1.7"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
