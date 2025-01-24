@@ -1,6 +1,6 @@
 {
   "name": "syntaxer",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "main": "./src/index.js",
   "scripts": {
     "build": "npx tsc"
@@ -14,8 +14,6 @@
   "description": "",
   "dependencies": {
     "@mozilla/readability": "^0.5.0",
-    "@postlight/parser": "^2.2.3",
-    "@types/cheerio": "^0.22.35",
     "axios": "^1.7.7",
     "commander": "^12.1.0",
     "commander-ts": "^0.2.0",
