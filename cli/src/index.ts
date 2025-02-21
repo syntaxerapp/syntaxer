@@ -19,6 +19,13 @@ const defaultConfigPath = path.join(
   'syntaxerConfig.json.default'
 )
 
+if (!fs.existsSync(path.join(os.homedir(), 'syntaxer'))) {
+  fs.mkdirSync(path.join(os.homedir(), 'syntaxer'))
+}
+if (!fs.existsSync(path.join(os.homedir(), 'syntaxer', 'generated'))) {
+  fs.mkdirSync(path.join(os.homedir(), 'syntaxer', 'generated'))
+}
+
 if (!fs.existsSync(configPath)) {
   fs.copyFile(defaultConfigPath, configPath, (err) => {
     if (err) throw err
@@ -26,11 +33,12 @@ if (!fs.existsSync(configPath)) {
   })
 }
 
+
 const manager = new PluginManager(__dirname)
 const db = new Database()
 
 program
-  .version('0.1.0')
+  .version('0.1.1')
   .description('Syntaxer CLI')
   .option('-l, --link <type>', 'link to convert')
   .action(async (options) => {
@@ -135,6 +143,7 @@ ${content.join('')}
 program.command('plugins', 'list of your plugins').executableDir('commands')
 program.command('enable', 'enable plugin').executableDir('commands')
 program.command('disable', 'disable plugin').executableDir('commands')
+program.command('choose', `set plugin's preferred command`).executableDir('commands')
 
 program.parse(process.argv)
 

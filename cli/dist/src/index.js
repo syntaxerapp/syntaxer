@@ -18,11 +18,17 @@ const plugin_manager_1 = require("./plugin-manager");
 Object.defineProperty(exports, "SyntaxerPlugin", { enumerable: true, get: function () { return plugin_manager_1.SyntaxerPlugin; } });
 const configPath = node_path_1.default.join(node_os_1.default.homedir(), 'syntaxer', 'syntaxerConfig.json');
 const defaultConfigPath = node_path_1.default.join(__dirname, '..', '..', 'syntaxerConfig.json.default');
+if (!node_fs_1.default.existsSync(node_path_1.default.join(node_os_1.default.homedir(), 'syntaxer'))) {
+    node_fs_1.default.mkdirSync(node_path_1.default.join(node_os_1.default.homedir(), 'syntaxer'));
+}
+if (!node_fs_1.default.existsSync(node_path_1.default.join(node_os_1.default.homedir(), 'syntaxer', 'generated'))) {
+    node_fs_1.default.mkdirSync(node_path_1.default.join(node_os_1.default.homedir(), 'syntaxer', 'generated'));
+}
 if (!node_fs_1.default.existsSync(configPath)) {
     node_fs_1.default.copyFile(defaultConfigPath, configPath, (err) => {
         if (err)
             throw err;
-        console.log('source.txt was copied to destination.txt');
+        console.log('syntaxerConfig.json does not exist, copied default config');
     });
 }
 const manager = new plugin_manager_1.PluginManager(__dirname);
@@ -30,7 +36,7 @@ exports.manager = manager;
 const db = new database_1.default();
 exports.db = db;
 commander_1.program
-    .version('0.1.0')
+    .version('0.1.1')
     .description('Syntaxer CLI')
     .option('-l, --link <type>', 'link to convert')
     .action(async (options) => {
@@ -112,4 +118,5 @@ ${content.join('')}
 commander_1.program.command('plugins', 'list of your plugins').executableDir('commands');
 commander_1.program.command('enable', 'enable plugin').executableDir('commands');
 commander_1.program.command('disable', 'disable plugin').executableDir('commands');
+commander_1.program.command('choose', `set plugin's preferred command`).executableDir('commands');
 commander_1.program.parse(process.argv);

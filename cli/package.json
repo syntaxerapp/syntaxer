@@ -1,6 +1,6 @@
 {
   "name": "@syntaxerapp/syntaxer",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "main": "./src/index.js",
   "scripts": {
     "build": "npx tsc"
@@ -17,6 +17,7 @@
     "axios": "^1.7.7",
     "commander": "^12.1.0",
     "commander-ts": "^0.2.0",
+    "inquirer": "^12.4.2",
     "jsdom": "^26.0.0",
     "node-json-db": "^2.3.0",
     "require-module": "^0.1.0",

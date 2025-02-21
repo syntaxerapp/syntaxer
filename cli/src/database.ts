@@ -44,6 +44,14 @@ class Database {
         await this.db.delete(`/plugins/enabled[${index}]`)
         await this.db.push('/plugins/disabled[]', plugin, true)
     }
+
+    async setChoice(index: number, choice: string) {
+        await this.db.push(`/plugins/enabled[${index}]/options/userChoice`, choice, true)
+    }
+
+    async setChoiceDisabled(index: number, choice: string) {
+        await this.db.push(`/plugins/disabled[${index}]/options/userChoice`, choice, true)
+    }
 }
 
 export default Database

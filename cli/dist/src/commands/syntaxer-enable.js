@@ -6,19 +6,19 @@ const __1 = require("..");
 commander_1.program.argument('<plugin>').action(async (plugin) => {
     if (plugin) {
         const findPlugin = async (plugin) => {
-            const plugins = await __1.db.getPluginList();
             const pluginsDisabled = await __1.db.getDisabledPluginList();
-            for (let i = 0; i < plugins.length; i++) {
-                const element = plugins[i];
-                if (element.name == plugin) {
-                    __1.db.disablePlugin(element, i);
-                    return 'Plugin disabled!';
-                }
-            }
             for (let i = 0; i < pluginsDisabled.length; i++) {
                 const element = pluginsDisabled[i];
                 if (element.name == plugin) {
-                    return 'Plugin is not enabled!';
+                    __1.db.enablePlugin(element, i);
+                    return 'Plugin enabled!';
+                }
+            }
+            const plugins = await __1.db.getPluginList();
+            for (let i = 0; i < plugins.length; i++) {
+                const element = plugins[i];
+                if (element.name == plugin) {
+                    return 'Plugin already enabled!';
                 }
             }
             return 'Plugin not installed';
