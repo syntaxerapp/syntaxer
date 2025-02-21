@@ -35,3 +35,5 @@ PNPM: ```pnpm install -g @syntaxerapp/syntaxer```
 Для включения или отключения плагинов используйте команды ```syntaxer enable [plugin]``` и ```syntaxer disable [plugin]``` соответственно, где `[plugin]` - название плагина.
 
 Посмотреть список всех плагинов можно командой ```syntaxer plugins```. Список всех команд - ```syntaxer -h```
+
+Для выбора предпочитаемой команды для плагина используйте ```syntaxer choose <plugin>```, где <plugin> - название плагина
