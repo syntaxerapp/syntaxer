@@ -1,0 +1,8 @@
+node_modules/
+jspm_packages/
+
+*.tsbuildinfo\
+
+.DS_Store
+.AppleDouble
+.LSOverride
